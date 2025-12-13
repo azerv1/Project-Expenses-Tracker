@@ -6,7 +6,7 @@ python manage.py makemigrations
 echo 'migrating'
 python manage.py migrate
 
-echo 'creating admin of doesnt exist'
+echo 'creating admin if doesnt exist'
 python manage.py shell << EOF
 from django.contrib.auth import get_user_model
 User = get_user_model()
