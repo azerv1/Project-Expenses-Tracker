@@ -1,5 +1,6 @@
 import uuid
 from django.db import models
+from auditlog.registry import auditlog
 
         
 class Employee(models.Model):
@@ -25,7 +26,6 @@ class Receipt(models.Model):
     date = models.DateField(auto_now_add=True)
     project =  models.ForeignKey(Project, on_delete=models.CASCADE, related_name='receipts')
 
-
     @property
     def total(self):
         return sum(item.price * (1+ item.VAT/100) for item in self.items.all())
@@ -41,3 +41,9 @@ class ExpenseItem(models.Model):
 
     def __str__(self):
         return f"{self.item}: {self.price}$, {self.VAT}% VAT"
+
+# audit log registering for audit trails
+auditlog.register(Employee)
+auditlog.register(Project)
+auditlog.register(Receipt)
+auditlog.register(ExpenseItem)
