@@ -1,4 +1,5 @@
 #!/bin/sh
+python manage.py collectstatic --noinput
 
 echo 'making migrations'
 python manage.py makemigrations
@@ -22,4 +23,4 @@ else:
 EOF
 
 echo 'starting server'
-python manage.py runserver 0.0.0.0:8000
+gunicorn tax_legal.wsgi:application --bind 0.0.0.0:8000
