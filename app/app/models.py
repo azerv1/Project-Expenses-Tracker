@@ -39,7 +39,7 @@ class ExpenseItem(models.Model):
     item = models.CharField(max_length=100)
     price = models.DecimalField(max_digits=10,decimal_places=2, validators=[MinValueValidator(0)])
     VAT = models.DecimalField(max_digits=4,decimal_places=2,validators=[MinValueValidator(0)]) # 24% 14% etc, not 0.24
-    quantity = models.IntegerField(validators=[MinValueValidator(0)])
+    quantity = models.IntegerField(default=1,validators=[MinValueValidator(0)])
 
     def __str__(self):
         return f"{self.item}: {self.price}$, {self.VAT}% VAT"
