@@ -36,6 +36,7 @@ class IntegrationTest(TestCase):
         assert project_cost == 124.0 + 228.0
     
     def test_put_project_payload(self):
+
         url = f"/api/projects/{self.project.id}/"
         payload = {
             'name':'new project name',
@@ -48,6 +49,7 @@ class IntegrationTest(TestCase):
         assert updated_project.name == 'new project name'
 
     def test_put_expenses_payload(self):
+        "change item price"
         url = f"/api/expenses/{self.expenses1.id}/"
         payload = {
             'item':self.expenses1.item,
@@ -62,6 +64,7 @@ class IntegrationTest(TestCase):
         assert updated_expenses.price == 100
 
     def test_put_employees_payload(self):
+        "change employee age"
         url = f"/api/employees/{self.nikos.id}/"
         payload = {
             'name':self.nikos.name,
@@ -72,3 +75,29 @@ class IntegrationTest(TestCase):
         assert response.status_code == 200
         updated_employee= Employee.objects.get(id=self.nikos.id)
         assert updated_employee.age == 30
+
+    def test_post_employees_age_lt_18(self):
+        "try to post an employee with age lower than 18"
+
+        url = f"/api/employees/"
+
+        payload = {
+            'name': 'alex',
+            'age':10
+        }
+        response = self.client.post(url,payload, format='json')
+        assert response.status_code == 400
+
+    def test_post_expenses_price_lt_0(self):
+        "try to post an item with cost lower than 0"
+
+        url = f"/api/expenses/"
+
+        payload = {
+            'item': 'negative cost',
+            'price':'-100.00',
+            'VAT':self.expenses1.VAT,
+            'receipt':self.expenses1.receipt.id
+        }
+        response = self.client.post(url,payload, format='json')
+        assert response.status_code == 400
