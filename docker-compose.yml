@@ -1,6 +1,12 @@
 services:
+  frontend:
+    build: ./frontend
+    depends_on:
+      - api
+    ports:
+      - "5173:5173"
   api:
-    build: .
+    build: ./app
     volumes:
       - ./app:/app
     ports:
