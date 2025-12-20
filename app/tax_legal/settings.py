@@ -54,7 +54,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-MIDDLEWARE.append('app.middleware.RateLimitMiddleware')
+#MIDDLEWARE.append('app.middleware.RateLimitMiddleware')
 
 ROOT_URLCONF = 'tax_legal.urls'
 
