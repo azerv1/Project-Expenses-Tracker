@@ -28,7 +28,7 @@ class ProjectSerializer(serializers.ModelSerializer):
     total = serializers.SerializerMethodField()
     class Meta:
         model = Project
-        fields = ['name','description','employees','total']
+        fields = ['id', 'name','description','employees','total']
 
     def get_total(self, obj):
         return obj.total
