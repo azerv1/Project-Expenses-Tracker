@@ -1,5 +1,7 @@
 # Project Expenses Tracker
 
+![Application Screenshot](Screenshot_1.jpg)
+
 ## Business Problem
 
 This django DRF API solves a hypothetical business problem, that appears when the costs of a Project, are not tracked properly.
@@ -28,7 +30,7 @@ The endpoints of the API are:
 
 ### Added features:
 
-- React Frontend
+- React Frontend with field sorting & search bar.
 - Integration tests
 - Input validation
 - Rate limiting Middleware
