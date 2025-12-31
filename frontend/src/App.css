@@ -63,6 +63,31 @@ h1 {
   margin-bottom: 1.5rem;
 }
 
+/* Search Bar */
+.search-bar-container {
+  margin-bottom: 1.5rem;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  box-sizing: border-box;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #646cff;
+  box-shadow: 0 0 0 3px rgba(100, 108, 255, 0.1);
+}
+
+.search-input::placeholder {
+  color: #999;
+}
+
 .header-actions h2 {
   margin: 0;
 }

@@ -32,6 +32,9 @@ function App() {
   const [projectSort, setProjectSort] = useState<{ column: string | null; direction: SortDirection }>({ column: null, direction: null })
   const [receiptSort, setReceiptSort] = useState<{ column: string | null; direction: SortDirection }>({ column: null, direction: null })
   const [expenseSort, setExpenseSort] = useState<{ column: string | null; direction: SortDirection }>({ column: null, direction: null })
+  
+  // Search state
+  const [expenseSearchQuery, setExpenseSearchQuery] = useState<string>('')
 
   // Load data when view changes
   useEffect(() => {
@@ -400,7 +403,20 @@ function App() {
         )
 
       case 'expenses':
-        const sortedExpenses = sortData(expenseItems, 'expenses', (exp, col) => {
+        // Filter expenses based on search query
+        const filteredExpenses = expenseItems.filter(exp => {
+          if (!expenseSearchQuery.trim()) return true
+          const query = expenseSearchQuery.toLowerCase()
+          return (
+            exp.id?.toString().includes(query) ||
+            exp.item.toLowerCase().includes(query) ||
+            exp.price.toString().includes(query) ||
+            exp.VAT.toString().includes(query) ||
+            exp.quantity.toString().includes(query)
+          )
+        })
+        
+        const sortedExpenses = sortData(filteredExpenses, 'expenses', (exp, col) => {
           if (col === 'id') return exp.id
           if (col === 'item') return exp.item
           if (col === 'price') return typeof exp.price === 'number' ? exp.price : parseFloat(String(exp.price))
@@ -416,6 +432,15 @@ function App() {
                 setEditingExpenseItem(undefined)
                 setShowForm(true)
               }}>+ Add Expense Item</button>
+            </div>
+            <div className="search-bar-container">
+              <input
+                type="text"
+                className="search-input"
+                placeholder="Search expenses by ID, item, price, VAT, or quantity..."
+                value={expenseSearchQuery}
+                onChange={(e) => setExpenseSearchQuery(e.target.value)}
+              />
             </div>
             <div className="data-table">
               <table>
@@ -516,6 +541,7 @@ function App() {
               setCurrentView('expenses')
               setShowForm(false)
               setExpenseSort({ column: null, direction: null })
+              setExpenseSearchQuery('')
             }}
           >
             Expenses
