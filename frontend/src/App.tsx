@@ -9,6 +9,8 @@ import type { Employee, Project, Receipt, ExpenseItem } from './types'
 
 type View = 'employees' | 'projects' | 'receipts' | 'expenses'
 
+type SortDirection = 'asc' | 'desc' | null
+
 function App() {
   const [currentView, setCurrentView] = useState<View>('employees')
 
@@ -24,6 +26,12 @@ function App() {
   const [editingReceipt, setEditingReceipt] = useState<Receipt | undefined>()
   const [editingExpenseItem, setEditingExpenseItem] = useState<ExpenseItem | undefined>()
   const [showForm, setShowForm] = useState(false)
+
+  // Sorting states
+  const [employeeSort, setEmployeeSort] = useState<{ column: string | null; direction: SortDirection }>({ column: null, direction: null })
+  const [projectSort, setProjectSort] = useState<{ column: string | null; direction: SortDirection }>({ column: null, direction: null })
+  const [receiptSort, setReceiptSort] = useState<{ column: string | null; direction: SortDirection }>({ column: null, direction: null })
+  const [expenseSort, setExpenseSort] = useState<{ column: string | null; direction: SortDirection }>({ column: null, direction: null })
 
   // Load data when view changes
   useEffect(() => {
@@ -78,6 +86,71 @@ function App() {
     }
   }
 
+  // Sorting functions
+  const handleSort = (view: View, column: string) => {
+    if (view === 'employees') {
+      const newDirection = employeeSort.column === column && employeeSort.direction === 'asc' ? 'desc' : 'asc'
+      setEmployeeSort({ column, direction: newDirection })
+    } else if (view === 'projects') {
+      const newDirection = projectSort.column === column && projectSort.direction === 'asc' ? 'desc' : 'asc'
+      setProjectSort({ column, direction: newDirection })
+    } else if (view === 'receipts') {
+      const newDirection = receiptSort.column === column && receiptSort.direction === 'asc' ? 'desc' : 'asc'
+      setReceiptSort({ column, direction: newDirection })
+    } else if (view === 'expenses') {
+      const newDirection = expenseSort.column === column && expenseSort.direction === 'asc' ? 'desc' : 'asc'
+      setExpenseSort({ column, direction: newDirection })
+    }
+  }
+
+  const getSortIcon = (view: View, column: string) => {
+    let sortState: { column: string | null; direction: SortDirection }
+    if (view === 'employees') sortState = employeeSort
+    else if (view === 'projects') sortState = projectSort
+    else if (view === 'receipts') sortState = receiptSort
+    else sortState = expenseSort
+
+    if (sortState.column !== column) return '⇅'
+    if (sortState.direction === 'asc') return '↑'
+    if (sortState.direction === 'desc') return '↓'
+    return '⇅'
+  }
+
+  const sortData = <T,>(data: T[], view: View, getValue: (item: T, column: string) => any): T[] => {
+    let sortState: { column: string | null; direction: SortDirection }
+    if (view === 'employees') sortState = employeeSort
+    else if (view === 'projects') sortState = projectSort
+    else if (view === 'receipts') sortState = receiptSort
+    else sortState = expenseSort
+
+    if (!sortState.column || !sortState.direction) return data
+
+    return [...data].sort((a, b) => {
+      const aVal = getValue(a, sortState.column!)
+      const bVal = getValue(b, sortState.column!)
+      
+      if (aVal === null || aVal === undefined) return 1
+      if (bVal === null || bVal === undefined) return -1
+      
+      if (typeof aVal === 'string' && typeof bVal === 'string') {
+        return sortState.direction === 'asc' 
+          ? aVal.localeCompare(bVal)
+          : bVal.localeCompare(aVal)
+      }
+      
+      const numA = typeof aVal === 'number' ? aVal : parseFloat(String(aVal))
+      const numB = typeof bVal === 'number' ? bVal : parseFloat(String(bVal))
+      
+      if (isNaN(numA) || isNaN(numB)) {
+        return sortState.direction === 'asc'
+          ? String(aVal).localeCompare(String(bVal))
+          : String(bVal).localeCompare(String(aVal))
+      }
+      
+      return sortState.direction === 'asc' ? numA - numB : numB - numA
+    })
+  }
+
   const renderContent = () => {
     if (showForm) {
       if (currentView === 'employees') {
@@ -129,6 +202,12 @@ function App() {
 
     switch (currentView) {
       case 'employees':
+        const sortedEmployees = sortData(employees, 'employees', (emp, col) => {
+          if (col === 'id') return emp.id
+          if (col === 'name') return emp.name
+          if (col === 'age') return emp.age
+          return null
+        })
         return (
           <div>
             <div className="header-actions">
@@ -142,14 +221,26 @@ function App() {
               <table>
                 <thead>
                   <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Age</th>
+                    <th>
+                      <button className="sort-button" onClick={() => handleSort('employees', 'id')}>
+                        ID {getSortIcon('employees', 'id')}
+                      </button>
+                    </th>
+                    <th>
+                      <button className="sort-button" onClick={() => handleSort('employees', 'name')}>
+                        Name {getSortIcon('employees', 'name')}
+                      </button>
+                    </th>
+                    <th>
+                      <button className="sort-button" onClick={() => handleSort('employees', 'age')}>
+                        Age {getSortIcon('employees', 'age')}
+                      </button>
+                    </th>
                     <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {employees.map(emp => (
+                  {sortedEmployees.map(emp => (
                     <tr key={emp.id}>
                       <td>{emp.id}</td>
                       <td>{emp.name}</td>
@@ -170,6 +261,13 @@ function App() {
         )
 
       case 'projects':
+        const sortedProjects = sortData(projects, 'projects', (proj, col) => {
+          if (col === 'id') return proj.id
+          if (col === 'name') return proj.name
+          if (col === 'description') return proj.description
+          if (col === 'total') return proj.total || 0
+          return null
+        })
         return (
           <div>
             <div className="header-actions">
@@ -183,15 +281,31 @@ function App() {
               <table>
                 <thead>
                   <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Description</th>
-                    <th>Total</th>
+                    <th>
+                      <button className="sort-button" onClick={() => handleSort('projects', 'id')}>
+                        ID {getSortIcon('projects', 'id')}
+                      </button>
+                    </th>
+                    <th>
+                      <button className="sort-button" onClick={() => handleSort('projects', 'name')}>
+                        Name {getSortIcon('projects', 'name')}
+                      </button>
+                    </th>
+                    <th>
+                      <button className="sort-button" onClick={() => handleSort('projects', 'description')}>
+                        Description {getSortIcon('projects', 'description')}
+                      </button>
+                    </th>
+                    <th>
+                      <button className="sort-button" onClick={() => handleSort('projects', 'total')}>
+                        Total {getSortIcon('projects', 'total')}
+                      </button>
+                    </th>
                     <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {projects.map(proj => (
+                  {sortedProjects.map(proj => (
                     <tr key={proj.id}>
                       <td>{proj.id}</td>
                       <td>{proj.name}</td>
@@ -213,6 +327,14 @@ function App() {
         )
 
       case 'receipts':
+        const sortedReceipts = sortData(receipts, 'receipts', (rec, col) => {
+          if (col === 'id') return rec.id
+          if (col === 'employee') return rec.employee_name || ''
+          if (col === 'project') return rec.project_name || ''
+          if (col === 'date') return rec.date || ''
+          if (col === 'total') return rec.total || 0
+          return null
+        })
         return (
           <div>
             <div className="header-actions">
@@ -226,16 +348,36 @@ function App() {
               <table>
                 <thead>
                   <tr>
-                    <th>ID</th>
-                    <th>Employee</th>
-                    <th>Project</th>
-                    <th>Date</th>
-                    <th>Total</th>
+                    <th>
+                      <button className="sort-button" onClick={() => handleSort('receipts', 'id')}>
+                        ID {getSortIcon('receipts', 'id')}
+                      </button>
+                    </th>
+                    <th>
+                      <button className="sort-button" onClick={() => handleSort('receipts', 'employee')}>
+                        Employee {getSortIcon('receipts', 'employee')}
+                      </button>
+                    </th>
+                    <th>
+                      <button className="sort-button" onClick={() => handleSort('receipts', 'project')}>
+                        Project {getSortIcon('receipts', 'project')}
+                      </button>
+                    </th>
+                    <th>
+                      <button className="sort-button" onClick={() => handleSort('receipts', 'date')}>
+                        Date {getSortIcon('receipts', 'date')}
+                      </button>
+                    </th>
+                    <th>
+                      <button className="sort-button" onClick={() => handleSort('receipts', 'total')}>
+                        Total {getSortIcon('receipts', 'total')}
+                      </button>
+                    </th>
                     <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {receipts.map(rec => (
+                  {sortedReceipts.map(rec => (
                     <tr key={rec.id}>
                       <td>{rec.id}</td>
                       <td>{rec.employee_name}</td>
@@ -258,6 +400,14 @@ function App() {
         )
 
       case 'expenses':
+        const sortedExpenses = sortData(expenseItems, 'expenses', (exp, col) => {
+          if (col === 'id') return exp.id
+          if (col === 'item') return exp.item
+          if (col === 'price') return typeof exp.price === 'number' ? exp.price : parseFloat(String(exp.price))
+          if (col === 'vat') return typeof exp.VAT === 'number' ? exp.VAT : parseFloat(String(exp.VAT))
+          if (col === 'quantity') return exp.quantity
+          return null
+        })
         return (
           <div>
             <div className="header-actions">
@@ -271,16 +421,36 @@ function App() {
               <table>
                 <thead>
                   <tr>
-                    <th>ID</th>
-                    <th>Item</th>
-                    <th>Price</th>
-                    <th>VAT %</th>
-                    <th>Quantity</th>
+                    <th>
+                      <button className="sort-button" onClick={() => handleSort('expenses', 'id')}>
+                        ID {getSortIcon('expenses', 'id')}
+                      </button>
+                    </th>
+                    <th>
+                      <button className="sort-button" onClick={() => handleSort('expenses', 'item')}>
+                        Item {getSortIcon('expenses', 'item')}
+                      </button>
+                    </th>
+                    <th>
+                      <button className="sort-button" onClick={() => handleSort('expenses', 'price')}>
+                        Price {getSortIcon('expenses', 'price')}
+                      </button>
+                    </th>
+                    <th>
+                      <button className="sort-button" onClick={() => handleSort('expenses', 'vat')}>
+                        VAT % {getSortIcon('expenses', 'vat')}
+                      </button>
+                    </th>
+                    <th>
+                      <button className="sort-button" onClick={() => handleSort('expenses', 'quantity')}>
+                        Quantity {getSortIcon('expenses', 'quantity')}
+                      </button>
+                    </th>
                     <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {expenseItems.map(exp => (
+                  {sortedExpenses.map(exp => (
                     <tr key={exp.id}>
                       <td>{exp.id}</td>
                       <td>{exp.item}</td>
@@ -315,6 +485,7 @@ function App() {
             onClick={() => {
               setCurrentView('employees')
               setShowForm(false)
+              setEmployeeSort({ column: null, direction: null })
             }}
           >
             Employees
@@ -324,6 +495,7 @@ function App() {
             onClick={() => {
               setCurrentView('projects')
               setShowForm(false)
+              setProjectSort({ column: null, direction: null })
             }}
           >
             Projects
@@ -333,6 +505,7 @@ function App() {
             onClick={() => {
               setCurrentView('receipts')
               setShowForm(false)
+              setReceiptSort({ column: null, direction: null })
             }}
           >
             Receipts
@@ -342,6 +515,7 @@ function App() {
             onClick={() => {
               setCurrentView('expenses')
               setShowForm(false)
+              setExpenseSort({ column: null, direction: null })
             }}
           >
             Expenses
